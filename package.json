@@ -1,0 +1,14 @@
+{
+  "name": "twitterapp",
+  "version": "1.0.0",
+  "description": "A twitter stream",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Adam Kowalczyk",
+  "license": "ISC",
+  "dependencies": {
+    "twitter": "^1.2.1"
+  }
+}
