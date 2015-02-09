@@ -11,33 +11,60 @@ var client = new Twitter({
   access_token_secret: config.atSecret
 });
 
-var htmlPath = path.join(__dirname,'index.html');
+var indexPath = path.join(__dirname,'index.html');
 var cssPath = path.join(__dirname,'main.css');
+var jqueryPath = path.join(__dirname,'jquery-2.1.3.min.js');
+var testPath = path.join(__dirname,'test.js');
 
-// console.log(htmlPath);
-// console.log(cssPath);
+// TODO create routing table and function
 
 var server = http.createServer(function(req, res){
-	fs.readFile(htmlPath, function(err, data) {
-		res.writeHead(200, {'Content-Type': 'text/html'});
-		res.write(data);
-		res.end();
-	});
-
-
-	fs.readFile(cssPath, function(err, data) {
-		res.writeHead(200, {'Content-Type': 'text/css'});
-		res.write(data);
-		res.end();
-	});
-
-	client.get('search/tweets.json?q=apple', function(error, tweets, response){
-		tweets.statuses.forEach(function(tweet){
-			console.log(tweet.text);
+	if (req.url.match(/index/)) {
+		fs.readFile(indexPath, function(err, data) {
+			res.writeHead(200, {'Content-Type': 'text/html'});
+			res.write(data);
+			res.end();
+		});
+	}
+	else if (req.url.match(/css/)) {
+		fs.readFile(cssPath, function(err, data) {
+			res.writeHead(200, {'Content-Type': 'text/css'});
+			res.write(data);
+			res.end();
+		});
+	}
+	else if (req.url.match(/jquery/)) {
+		fs.readFile(jqueryPath, function(err, data) {
+			res.writeHead(200, {'Content-Type': 'application/javascript'});
+			res.write(data);
+			res.end();
+		});
+	}
+	else if (req.url.match(/test/)) {
+		fs.readFile(testPath, function(err, data) {
+			res.writeHead(200, {'Content-Type': 'application/javascript'});
+			res.write(data);
+			res.end();
+		});
+	}
+	else if (req.url.match(/tweetme/)) {
+		client.get('search/tweets.json?q=apple', function(error, tweets, response){
+			res.writeHead(200, {'Content-Type': 'text/plain'});
+			tweets.statuses.forEach(function(tweet){
 				res.write('<p>'+tweet.text+'</p>');
 			});
-		res.end();
-	});
+			res.end();
+		});
+	}
+
+
+	// // client.get('search/tweets.json?q=apple', function(error, tweets, response){
+	// // 	tweets.statuses.forEach(function(tweet){
+	// // 		console.log(tweet.text);
+	// // 			res.write('<p>'+tweet.text+'</p>');
+	// // 		});
+	// 		res.end();
+	// });
 
 });
 
