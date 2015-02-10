@@ -19,12 +19,25 @@ if (configCheck) {
 
 
 
-var client = new Twitter({
-  consumer_key: config.cKey,
-  consumer_secret: config.cSecret,
-  access_token_key: config.atKey,
-  access_token_secret: config.atSecret
-});
+var client;
+	
+if (configCheck) {
+	client = new Twitter({
+	  		consumer_key: config.cKey,
+	  		consumer_secret: config.cSecret,
+	  		access_token_key: config.atKey,
+	  		access_token_secret: config.atSecret
+	});
+}
+else {
+	client = new Twitter({
+	  		consumer_key: process.env.C_KEY,
+	  		consumer_secret: process.env.C_SECRET,
+	  		access_token_key: process.env.AT_KEY,
+	  		access_token_secret: process.env.AT_SECRET
+	});
+}
+
 
 var indexPath = path.join(__dirname,'index.html');
 var cssPath = path.join(__dirname,'main.css');
@@ -75,13 +88,6 @@ var server = http.createServer(function(req, res){
 
 server.listen(process.env.PORT || 8000);
 console.log('Running..');
-
-
-// client.get('search/tweets.json?q=apple', function(error, tweets, response){
-// 	tweets.statuses.forEach(function(tweet){
-// 		console.log(tweet.text);
-// 	});	
-// });
 
 
 
