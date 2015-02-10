@@ -66,7 +66,7 @@ function getPage(route, res) {
 
 var server = http.createServer(function(req, res){
 
-	// Check for page request
+	// Check for requested page
 	var pageExists = false;
 	var pageKey = '';
 	for (var key in routes) {
@@ -75,32 +75,37 @@ var server = http.createServer(function(req, res){
 			pageKey = key;
 		}
 	}
-
+	// Serve Pages
 	console.log('Req.url: '+req.url);
-	
 	if (req.url === '/') {
 		getPage('index', res);
 	}
-	// else if (req.url.indexOf('tweetme') === -1){
-	// 	for (var key in routes) {
-	// 		if (req.url.indexOf(key) !== -1) {
-	// 			getPage(key,res);
-	// 		}
-	// 	}
-	// }
 	else if (pageExists) {
 		getPage(pageKey, res);
 	}
 	else if (req.url.match(/tweetme/)) {
 		var urlObj = url.parse(req.url,true);
 		console.log(urlObj.query);
-		var queryURL = 'search/tweets.json?q='+urlObj.query.query;
+		var queryURL = 'search/tweets.json?q='+urlObj.query.query+'&result_type=recent';
 		console.log('Query url: '+queryURL);
 		client.get(queryURL, function(error, tweets, response){
 			res.writeHead(200, {'Content-Type': 'text/plain'});
-			tweets.statuses.forEach(function(tweet){
-				res.write('<p>'+tweet.text+'</p>');
-			});
+			if (tweets.statuses.length > 0) {
+				tweets.statuses.forEach(function(tweet){
+					res.write('<strong>'+tweet.user.screen_name+'</strong>');
+					console.log('User: '+tweet.user.screen_name);
+					res.write('<p>'+tweet.text+'</p>');
+					console.log('Text: '+tweet.text);
+					if (tweet.entities.urls[0]) {
+						res.write('<a href="'+tweet.entities.urls[0].expanded_url+'">'+tweet.entities.urls[0].display_url+'</a>');
+						console.log('URL: '+tweet.entities.urls[0].expanded_url);
+					}
+					if (tweet.entities.media) {
+						res.write('<img width="20%" height="20%" src="'+tweet.entities.media[0].media_url+'"/>');
+						console.log('Image URL: '+tweet.entities.media[0].media_url);
+					}
+				});
+			}	
 			res.end();
 		});
 	}
