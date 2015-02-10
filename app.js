@@ -1,9 +1,23 @@
-var config = require('./config.json');
+
 var http = require('http');
 var Twitter = require('twitter');
 var fs = require('fs');
 var path = require('path');
 var url = require('url');
+var configCheck = true;
+var config;
+try {
+	fs.readFileSync(path.join(__dirname,'config.json'));	
+}
+catch (e) {
+	configCheck = false;
+}
+
+if (configCheck) {
+	config = require('./config.json');
+}
+
+
 
 var client = new Twitter({
   consumer_key: config.cKey,
