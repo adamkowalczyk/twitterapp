@@ -17,12 +17,6 @@ var cssPath = path.join(__dirname,'main.css');
 var jqueryPath = path.join(__dirname,'jquery-2.1.3.min.js');
 var testPath = path.join(__dirname,'test.js');
 
-var types = {
-	html : {'Content-Type': 'text/html'},
-	css : {'Content-Type': 'text/css'},
-	js : {'Content-Type': 'application/javascript'}
-};
-
 var routes = {
 	'index' : {file : indexPath, ctype : {'Content-Type': 'text/html'}},
 	'css' : {file : cssPath, ctype : {'Content-Type': 'text/css'}},
@@ -30,7 +24,6 @@ var routes = {
 	'test' : {file : testPath, ctype : {'Content-Type': 'application/javascript'}}
 };
 
-// TODO create routing table and function
 
 function getPage(route, res) {
 	fs.readFile(routes[route].file, function(err, data) {
@@ -42,49 +35,14 @@ function getPage(route, res) {
 }
 
 var server = http.createServer(function(req, res){
-
+// Check for page request
 		for (var key in routes) {
 			if (req.url.indexOf(key) !== -1) {
 				getPage(key,res);
 			}
 		}
 
-	// if (routes[reqRoute]) {
-	// 		console.log(routes[reqRoute]);
-	// 		fs.readFile(routes[reqRoute].file, function(err, data) {
-	// 			res.writeHead(200, routes[reqRoute].type);
-	// 			res.write(data);
-	// 			res.end();
-	// 		});
-	// }
-	// if (req.url.match(/index/)) {
-	// 	fs.readFile(indexPath, function(err, data) {
-	// 		res.writeHead(200, {'Content-Type': 'text/html'});
-	// 		res.write(data);
-	// 		res.end();
-	// 	});
-	// }
-	// else if (req.url.match(/css/)) {
-	// 	fs.readFile(cssPath, function(err, data) {
-	// 		res.writeHead(200, {'Content-Type': 'text/css'});
-	// 		res.write(data);
-	// 		res.end();
-	// 	});
-	// }
-	// else if (req.url.match(/jquery/)) {
-	// 	fs.readFile(jqueryPath, function(err, data) {
-	// 		res.writeHead(200, {'Content-Type': 'application/javascript'});
-	// 		res.write(data);
-	// 		res.end();
-	// 	});
-	// }
-	// else if (req.url.match(/test/)) {
-	// 	fs.readFile(testPath, function(err, data) {
-	// 		res.writeHead(200, {'Content-Type': 'application/javascript'});
-	// 		res.write(data);
-	// 		res.end();
-	// 	});
-	// }
+// Check for API request
 	if (req.url.match(/tweetme/)) {
 		var urlObj = url.parse(req.url,true);
 		console.log(urlObj.query);
@@ -101,7 +59,7 @@ var server = http.createServer(function(req, res){
 	}
 });
 
-server.listen(8000);
+server.listen(process.env.PORT || 8000);
 console.log('Running..');
 
 
