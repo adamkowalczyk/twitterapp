@@ -1,7 +1,15 @@
-p {
-	color: purple;
+h1 {
+	color: teal;
 }
 
-h1 {
-	color: red;
+.tweet {
+	display: block;
+}
+
+.tweet-name{
+	font-weight: bold;
+}
+
+.tweet-img {
+	/*float: left;*/
 }

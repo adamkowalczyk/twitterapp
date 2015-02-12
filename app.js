@@ -41,15 +41,19 @@ else {
 
 // File paths
 var indexPath = path.join(__dirname,'index.html');
+var streamPath = path.join(__dirname,'stream.html');
 var cssPath = path.join(__dirname,'main.css');
 var jqueryPath = path.join(__dirname,'jquery-2.1.3.min.js');
 var testPath = path.join(__dirname,'test.js');
+var page2Path = path.join(__dirname,'page2.js');
 
 var routes = {
 	'index' : {file : indexPath, ctype : {'Content-Type': 'text/html'}},
+	'stream' : {file : streamPath, ctype : {'Content-Type': 'text/html'}},
 	'css' : {file : cssPath, ctype : {'Content-Type': 'text/css'}},
 	'jquery' : {file : jqueryPath, ctype : {'Content-Type': 'application/javascript'}},
-	'test' : {file : testPath, ctype : {'Content-Type': 'application/javascript'}}
+	'test' : {file : testPath, ctype : {'Content-Type': 'application/javascript'}},
+	'page2' : {file : page2Path, ctype : {'Content-Type': 'application/javascript'}}
 };
 
 
@@ -61,6 +65,37 @@ function getPage(route, res) {
 		res.end();
 	});
 }
+
+
+//TWITTER STREAM
+
+var streamTweets = [];
+client.stream('statuses/filter', {track: 'math'}, function(stream){
+	stream.on('data', function(tweet){
+		console.log(tweet.text);
+		if (streamTweets.length < 20) {
+			streamTweets.push(tweet.text);
+		}
+		else {
+			streamTweets.shift();
+			streamTweets.push(tweet.text);
+		}
+	});
+});
+
+// Dummy Stream
+// var count = 1;
+// setInterval(function(){
+// 	if (streamTweets.length < 20) {
+// 			streamTweets.push(count);
+// 			count++;
+// 		}
+// 		else {
+// 			streamTweets.shift();
+// 			streamTweets.push(count);
+// 			count++;
+// 		}},1000);
+
 
 // SERVER //
 
@@ -88,26 +123,36 @@ var server = http.createServer(function(req, res){
 		console.log(urlObj.query);
 		var queryURL = 'search/tweets.json?q='+urlObj.query.query+'&result_type=recent';
 		console.log('Query url: '+queryURL);
+		
 		client.get(queryURL, function(error, tweets, response){
 			res.writeHead(200, {'Content-Type': 'text/plain'});
 			if (tweets.statuses.length > 0) {
 				tweets.statuses.forEach(function(tweet){
-					res.write('<strong>'+tweet.user.screen_name+'</strong>');
-					console.log('User: '+tweet.user.screen_name);
-					res.write('<p>'+tweet.text+'</p>');
-					console.log('Text: '+tweet.text);
+					res.write('<div class="tweet-div">');
+					res.write('<p class="tweet tweet-name">'+tweet.user.screen_name+'<p>');
+					// console.log('User: '+tweet.user.screen_name);
+					res.write('<p class="tweet tweet-text">'+tweet.text+'</p>');
+					// console.log('Text: '+tweet.text);
 					if (tweet.entities.urls[0]) {
-						res.write('<a href="'+tweet.entities.urls[0].expanded_url+'">'+tweet.entities.urls[0].display_url+'</a>');
-						console.log('URL: '+tweet.entities.urls[0].expanded_url);
+						res.write('<br/><a class="tweet tweet-link" href="'+tweet.entities.urls[0].expanded_url+'">'+tweet.entities.urls[0].display_url+'</a>');
+						// console.log('URL: '+tweet.entities.urls[0].expanded_url);
 					}
 					if (tweet.entities.media) {
-						res.write('<img width="20%" height="20%" src="'+tweet.entities.media[0].media_url+'"/>');
-						console.log('Image URL: '+tweet.entities.media[0].media_url);
+						res.write('<img class="tweeet tweet-img" width="20%" height="20%" src="'+tweet.entities.media[0].media_url+'"/>');
+						// console.log('Image URL: '+tweet.entities.media[0].media_url);
 					}
+					res.write('</div>');
 				});
 			}	
 			res.end();
 		});
+	}
+	else if (req.url.match(/hose/)) {
+		var tweetsJSON = JSON.stringify(streamTweets); 
+		res.writeHead(200, {'Content-Type': 'text/plain'});
+		res.write(tweetsJSON);
+		console.log(tweetsJSON);
+		res.end();
 	}
 	else {
 		res.writeHead(404, {'Content-Type': 'text/plain'});
