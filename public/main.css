@@ -2,11 +2,18 @@ p {
 	color: gray;
 }
 
-.media-object {
-	height: 100px;
-	width: 100px;
+/*Proportional image scaling*/
+.media-left{
+    height: 100px;
 }
 
+.media-object {
+	vertical-align: middle;
+    height: 100%;
+}
+
+/*unused?*/
 .hidden {
 	display: none;
 }
+

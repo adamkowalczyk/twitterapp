@@ -15,8 +15,10 @@
 			<div class='col-md-3'></div>
 			<div class='col-md-6'>
 				<input type="text" id='query-field' class="form-control">
-				<button id='search-btn' class='btn btn-default'>Search</button>
-				<button id='stream-btn' class='btn btn-default'>Stream</button>
+				<button id='search-btn' class='btn btn-default'>Search query</button>
+				<button id='stream-filter-btn' class='btn btn-default'>Set stream filter</button>
+				<button id='stream-toggle-btn' class='btn btn-default'>Stop stream - local</button>
+				<button id='stream-kill-btn' class='btn btn-default'>Kill stream -server</button>
 			</div>	
 		</div>
 		<div class='row'>
@@ -29,20 +31,19 @@
     						<a href="#search-results" aria-controls="search-results" role="tab" data-toggle="tab">Search</a>
     					</li>
     					<li role="presentation">
-    						<a href="#stream" aria-controls="stream" role="tab" data-toggle="tab">Stream</a>
+    						<a href="#stream-results" aria-controls="stream-results" role="tab" data-toggle="tab">Stream</a>
     					</li>
     				</ul>
-
-    			 <div class="tab-content">
-					<div role="tabpanel" class="tab-pane active hidden" id="search-results">...</div>
-					<div role="tabpanel" class="tab-pane" id="stream">...</div>    
+    			</div>
+    			
+    			<div class="tab-content">
+					<div role="tabpanel" class="tab-pane active" id="search-results"></div>
+					<div role="tabpanel" class="tab-pane" id="stream-results"></div>    
  				</div>
 
-								<!-- <div id='search-results' class='hidden'>
-								</div> -->
-				</div>
+				
 			</div>
 		</div>
-	</div>	
+	</div>
 </body>
 </html>
