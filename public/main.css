@@ -1,0 +1,12 @@
+p {
+	color: gray;
+}
+
+.media-object {
+	height: 100px;
+	width: 100px;
+}
+
+.hidden {
+	display: none;
+}

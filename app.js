@@ -1,11 +1,11 @@
-
 var http = require('http');
-var Twitter = require('twitter');
 var fs = require('fs');
 var path = require('path');
 var url = require('url');
+var Twitter = require('twitter');
+var ecstatic = require('ecstatic')({root: __dirname + '/public'});
 
-// Use config.json if running locally (without foreman), else use env vars
+// Check for config.json in root
 var configCheck = true;
 var config;
 try {
@@ -17,8 +17,6 @@ catch (e) {
 if (configCheck) {
 	config = require('./config.json');
 }
-
-// DUH! JUST USE THE .ENV? but, can I require a non json file?
 
 // Instantiate client 
 var client;
@@ -39,124 +37,87 @@ else {
 	});
 }
 
-// File paths
-var indexPath = path.join(__dirname,'index.html');
-var streamPath = path.join(__dirname,'stream.html');
-var cssPath = path.join(__dirname,'main.css');
-var jqueryPath = path.join(__dirname,'jquery-2.1.3.min.js');
-var testPath = path.join(__dirname,'test.js');
-var page2Path = path.join(__dirname,'page2.js');
-
-var routes = {
-	'index' : {file : indexPath, ctype : {'Content-Type': 'text/html'}},
-	'stream' : {file : streamPath, ctype : {'Content-Type': 'text/html'}},
-	'css' : {file : cssPath, ctype : {'Content-Type': 'text/css'}},
-	'jquery' : {file : jqueryPath, ctype : {'Content-Type': 'application/javascript'}},
-	'test' : {file : testPath, ctype : {'Content-Type': 'application/javascript'}},
-	'page2' : {file : page2Path, ctype : {'Content-Type': 'application/javascript'}}
-};
-
-
-function getPage(route, res) {
-	fs.readFile(routes[route].file, function(err, data) {
-		console.log(routes[route].file, routes[route].ctype);
-		res.writeHead(200, routes[route].ctype);
-		res.write(data);
-		res.end();
-	});
-}
-
-
 //TWITTER STREAM
 
 var streamTweets = [];
-client.stream('statuses/filter', {track: 'math'}, function(stream){
-	stream.on('data', function(tweet){
-		console.log(tweet.text);
-		if (streamTweets.length < 20) {
-			streamTweets.push(tweet.text);
-		}
-		else {
-			streamTweets.shift();
-			streamTweets.push(tweet.text);
-		}
-	});
-});
-
-// Dummy Stream
-// var count = 1;
-// setInterval(function(){
-// 	if (streamTweets.length < 20) {
-// 			streamTweets.push(count);
-// 			count++;
+// var stream = client.stream('statuses/filter', {track: 'math'}, function(stream){
+// 	stream.on('data', function(tweet){
+// 		console.log(tweet.text);
+// 		if (streamTweets.length < 20) {
+// 			streamTweets.push(tweet.text);
 // 		}
 // 		else {
 // 			streamTweets.shift();
-// 			streamTweets.push(count);
-// 			count++;
-// 		}},1000);
+// 			streamTweets.push(tweet.text);
+// 		}
+// 	});
+// });
 
 
-// SERVER //
-
-var server = http.createServer(function(req, res){
-
-	// Check for requested page
-	var pageExists = false;
-	var pageKey = '';
-	for (var key in routes) {
-		if (req.url.indexOf(key) !== -1) {
-			pageExists = true;
-			pageKey = key;
+// TWITTER SEARCH FUNCTION  -URL (PARAM) IN - OBJECT OUT
+// TODO: Put in module
+function twitterSearch(query, callback) {
+	var result = [];
+	client.get(query, function(error, tweets, response){
+		if (error) {
+			result.push('ERROR - SEARCH FAILED');
+			return callback(result,null);
 		}
-	}
-	// Serve Pages
-	console.log('Req.url: '+req.url);
-	if (req.url === '/') {
-		getPage('index', res);
-	}
-	else if (pageExists) {
-		getPage(pageKey, res);
-	}
-	else if (req.url.match(/tweetme/)) {
-		var urlObj = url.parse(req.url,true);
-		console.log(urlObj.query);
-		var queryURL = 'search/tweets.json?q='+urlObj.query.query+'&result_type=recent';
-		console.log('Query url: '+queryURL);
-		
-		client.get(queryURL, function(error, tweets, response){
-			res.writeHead(200, {'Content-Type': 'text/plain'});
+		else {
 			if (tweets.statuses.length > 0) {
 				tweets.statuses.forEach(function(tweet){
-					res.write('<div class="tweet-div">');
-					res.write('<p class="tweet tweet-name">'+tweet.user.screen_name+'<p>');
-					// console.log('User: '+tweet.user.screen_name);
-					res.write('<p class="tweet tweet-text">'+tweet.text+'</p>');
-					// console.log('Text: '+tweet.text);
+					var tweetData = {};
+					tweetData.userName = tweet.user.screen_name;
+					tweetData.text = tweet.text;
 					if (tweet.entities.urls[0]) {
-						res.write('<br/><a class="tweet tweet-link" href="'+tweet.entities.urls[0].expanded_url+'">'+tweet.entities.urls[0].display_url+'</a>');
-						// console.log('URL: '+tweet.entities.urls[0].expanded_url);
+						tweetData.expUrl = tweet.entities.urls[0].expanded_url; 
+						tweetData.disUrl = tweet.entities.urls[0].display_url;
 					}
 					if (tweet.entities.media) {
-						res.write('<img class="tweeet tweet-img" width="20%" height="20%" src="'+tweet.entities.media[0].media_url+'"/>');
-						// console.log('Image URL: '+tweet.entities.media[0].media_url);
+						tweetData.media = tweet.entities.media[0].media_url;
 					}
-					res.write('</div>');
+					result.push(tweetData);
 				});
-			}	
-			res.end();
-		});
+				return callback(null,result);
+			}
+			else {
+				result.push('ERROR - NO RESULTS');
+				return callback(result, null);
+			}
+		}
+	});
+}
+// SERVER
+
+var server = http.createServer(function(req, res){
+	if (false) {
+		// if periodic stream request - send tweetStream array
 	}
-	else if (req.url.match(/hose/)) {
-		var tweetsJSON = JSON.stringify(streamTweets); 
-		res.writeHead(200, {'Content-Type': 'text/plain'});
-		res.write(tweetsJSON);
-		console.log(tweetsJSON);
-		res.end();
+	else if (false) {
+		// if filter - change stream filter HOW? put stream in function, call it?
+	}
+	else if (req.url.match(/search/)) {
+		// if search, call search method, return array of objects, stringified
+		console.log('Search request received');
+		var urlObj = url.parse(req.url,true);
+		var queryURL = 'search/tweets.json?q='+urlObj.query.searchterm+'&result_type=recent';
+		console.log('QueryURL: '+queryURL);
+		twitterSearch(queryURL, function(err, data){
+			if (err) {
+				res.writeHead(200, {'Content-Type': 'text/plain'});
+				res.end(err[0]);
+				console.log(err[0]);
+			}
+			else {
+				res.writeHead(200, {'Content-Type': 'application/json'});
+				res.end(JSON.stringify(data));
+				console.log(JSON.stringify(data));
+			}
+		});
+		
 	}
 	else {
-		res.writeHead(404, {'Content-Type': 'text/plain'});
-		res.end('404 - Page not found');
+		ecstatic(req, res);
 	}
 });
 

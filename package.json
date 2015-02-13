@@ -9,6 +9,7 @@
   "author": "Adam Kowalczyk",
   "license": "ISC",
   "dependencies": {
+    "ecstatic": "^0.5.8",
     "twitter": "^1.2.1"
   },
   "engines": {
